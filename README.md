@@ -74,7 +74,7 @@ The requested GitHub integration uses an **Ed25519 SSH key**, not an SSL key. Se
 ## Troubleshooting and reruns
 
 - WSL failure: enable virtualization in BIOS/UEFI, apply Windows updates, reboot, run `wsl --status`, then rerun.
-- Docker timeout: finish Desktop setup, verify `docker info`, ensure Linux containers, then rerun. The script waits up to five minutes.
+- Docker timeout: finish Desktop setup, verify `docker info`, ensure Linux containers, then rerun. The script waits up to five minutes and reports progress every 30 seconds. Missing-engine errors are treated as retryable during startup rather than stopping PowerShell immediately.
 - Port already used: free localhost ports 8080/8443, or change the host side of `compose.yaml` ports and the guide together. 8081 is used only during Argo CD port forwarding.
 - Container failure: `docker compose logs --timestamps`; verify Docker memory/disk allocation. Jenkins startup or package network downloads can take longer on slow hardware.
 - Kubernetes/Argo failure: check `minikube status -p devops-laptop` and `kubectl --context=devops-laptop -n argocd get pods`. Reuse the same profile on rerun.

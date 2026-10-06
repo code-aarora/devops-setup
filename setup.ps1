@@ -13,6 +13,13 @@ function Task([string]$name, [scriptblock]$action) {
     & $action
     Write-Host "[PASS] $name" -ForegroundColor Green
 }
+function Probe([string]$exe, [string[]]$arguments) {
+    # Expected native failures must not trigger PowerShell 5.1's terminating stderr handling.
+    $ErrorActionPreference = 'Continue'
+    $output = & $exe @arguments 2>&1
+    $code = $LASTEXITCODE
+    [pscustomobject]@{ ExitCode = $code; Output = (($output | ForEach-Object { "$_" }) -join "`n") }
+}
 function RefreshPath {
     $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
     foreach ($p in @("$env:ProgramFiles\Docker\Docker\resources\bin", "$env:ProgramFiles\Git\cmd", "$env:LOCALAPPDATA\Microsoft\WinGet\Links")) {
@@ -65,19 +72,23 @@ try {
         Run 'git' @('--version')
     }
     Task 'Verify Docker Linux engine and Compose' {
-        & docker info *> $null
-        if ($LASTEXITCODE -ne 0) {
-            Start-Process -FilePath "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe" -WindowStyle Hidden
+        $engine = Probe 'docker' @('info','--format','{{.OSType}}')
+        if ($engine.ExitCode -ne 0) {
+            Write-Host "Docker is not ready: $($engine.Output)"
+            $desktop = @("$env:ProgramFiles\Docker\Docker\Docker Desktop.exe", "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe") | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+            if (-not $desktop) { throw 'Docker Desktop application not found. Install Docker Desktop; a Docker CLI alone is insufficient.' }
+            Start-Process -FilePath $desktop -WindowStyle Hidden
             Write-Host 'Complete Docker Desktop first-run prompts and select the WSL 2 Linux backend.'
             $ready = $false
             for ($i=0; $i -lt 60; $i++) {
-                & docker info *> $null
-                if ($LASTEXITCODE -eq 0) { $ready=$true; break }
+                $engine = Probe 'docker' @('info','--format','{{.OSType}}')
+                if ($engine.ExitCode -eq 0) { $ready=$true; break }
+                if ($i % 6 -eq 0) { Write-Host "Waiting for Docker Linux engine ($($i * 5)/300 seconds)..." }
                 Start-Sleep -Seconds 5
             }
-            if (-not $ready) { throw 'Docker engine unavailable after 5 minutes. Complete Desktop setup and rerun.' }
+            if (-not $ready) { throw "Docker engine unavailable after 5 minutes. Last error: $($engine.Output). Open Docker Desktop, check WSL 2/virtualization, and rerun." }
         }
-        $os = & docker info --format '{{.OSType}}'
+        $os = $engine.Output.Trim()
         if ($os -ne 'linux') { throw 'Switch Docker Desktop to Linux containers and rerun.' }
         Run 'docker' @('compose','version')
     }
@@ -100,8 +111,9 @@ try {
     Task 'Start Kubernetes and install Argo CD' {
         Run 'minikube' @('start','-p','devops-laptop','--driver=docker','--cpus=2','--memory=4096')
         Run 'kubectl' @('--context=devops-laptop','get','nodes')
-        & kubectl --context=devops-laptop get namespace argocd *> $null
-        if ($LASTEXITCODE -ne 0) { Run 'kubectl' @('--context=devops-laptop','create','namespace','argocd') }
+        $namespace = Probe 'kubectl' @('--context=devops-laptop','get','namespace','argocd','--ignore-not-found','-o','name')
+        if ($namespace.ExitCode -ne 0) { throw "Kubernetes namespace check failed: $($namespace.Output)" }
+        if ([string]::IsNullOrWhiteSpace($namespace.Output)) { Run 'kubectl' @('--context=devops-laptop','create','namespace','argocd') }
         Run 'kubectl' @('--context=devops-laptop','apply','-n','argocd','--server-side','--force-conflicts','-f','https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml')
         Run 'kubectl' @('--context=devops-laptop','-n','argocd','rollout','status','deployment/argocd-server','--timeout=300s')
     }
