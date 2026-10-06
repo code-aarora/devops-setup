@@ -1,8 +1,16 @@
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 data/
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 log.txt
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 setup-state.json
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 DEVOPS-ACCESS.md
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 github_devops.pub
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 *.key
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 *.pem
+# Exclude generated local data, credentials, runtime reports or caches from Git tracking.
 manifests/
