@@ -1,24 +1,41 @@
+# Define the local Ubuntu service.
 services:
   ubuntu:
+    # Build from the Dockerfile in this folder.
     build: .
+    # Use the stable container name referenced by setup commands.
     container_name: devops-ubuntu
+    # Restart after unexpected exits unless explicitly stopped.
     restart: unless-stopped
+    # Publish web services only on the Windows loopback interface.
     ports:
       - "127.0.0.1:8080:8080"
       - "127.0.0.1:8443:8443"
+    # Persist home, Jenkins state and workspace in the chosen disk folder.
     volumes:
       - type: bind
+        # Use the storage root supplied by the setup environment.
         source: ${DEVOPS_DATA_DIR:?Run setup.bat or set DEVOPS_DATA_DIR}/home
+        # Mount that directory at the required Ubuntu runtime path.
         target: /home/devops
       - type: bind
+        # Use the storage root supplied by the setup environment.
         source: ${DEVOPS_DATA_DIR}/jenkins
+        # Mount that directory at the required Ubuntu runtime path.
         target: /var/jenkins_home
       - type: bind
+        # Use the storage root supplied by the setup environment.
         source: ${DEVOPS_DATA_DIR}/workspace
+        # Mount that directory at the required Ubuntu runtime path.
         target: /workspace
+    # Require both editor and Jenkins HTTP endpoints to respond before setup continues.
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8443/healthz >/dev/null && curl -fsS http://localhost:8080/login >/dev/null"]
+      # Wait this long between health probes.
       interval: 15s
+      # Limit each individual health probe.
       timeout: 5s
+      # Allow this many failed probes before reporting unhealthy.
       retries: 20
+      # Allow initial service startup time before counting health failures.
       start_period: 90s
