@@ -142,7 +142,7 @@ try {
     }
     Task 'Write access guide on Ubuntu Desktop and Windows' {
         Run 'docker' @('cp',(Join-Path $root 'ACCESS.md'),'devops-ubuntu:/home/devops/Desktop/DEVOPS-ACCESS.md')
-        Run 'docker' @('exec','chown','devops:devops','/home/devops/Desktop/DEVOPS-ACCESS.md')
+        Run 'docker' @('exec','devops-ubuntu','chown','devops:devops','/home/devops/Desktop/DEVOPS-ACCESS.md')
         Copy-Item -LiteralPath (Join-Path $root 'ACCESS.md') -Destination (Join-Path $root 'DEVOPS-ACCESS.md') -Force
     }
     Write-Host "`nSUCCESS: See DEVOPS-ACCESS.md for login and GitHub registration steps." -ForegroundColor Green
