@@ -5,3 +5,4 @@ setup-state.json
 github_devops.pub
 *.key
 *.pem
+manifests

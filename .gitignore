@@ -5,3 +5,4 @@ DEVOPS-ACCESS.md
 github_devops.pub
 *.key
 *.pem
+manifests/

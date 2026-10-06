@@ -19,6 +19,7 @@ The installer changes Windows optional features, installs software with winget, 
 | File | Purpose |
 | --- | --- |
 | setup.bat / setup.ps1 | Interactive launcher; nine checked tasks, error handling, disk prompt, environment, log |
+| setup-kubernetes.ps1 | Matching Minikube kubectl, node-readiness wait, retrying IPv4 manifest download and Argo CD rollout checks |
 | Dockerfile / install-tools.sh | Ubuntu image and official tool download/repository installation |
 | compose.yaml | Loopback-only services and persistent bind mounts |
 | entrypoint.sh / supervisord.conf | Start and supervise Jenkins and code-server |
@@ -75,9 +76,11 @@ The requested GitHub integration uses an **Ed25519 SSH key**, not an SSL key. Se
 
 - WSL failure: enable virtualization in BIOS/UEFI, apply Windows updates, reboot, run `wsl --status`, then rerun.
 - Docker timeout: finish Desktop setup, verify `docker info`, ensure Linux containers, then rerun. The script waits up to five minutes and reports progress every 30 seconds. Missing-engine errors are treated as retryable during startup rather than stopping PowerShell immediately.
+- Docker HTTP 500: readiness requires both a successful exit and a recognized engine type; server-error responses are retried. The script clears a forced `DOCKER_API_VERSION` in its own process to allow API negotiation. If errors persist, use Docker Desktop > Troubleshoot > Restart Docker Desktop, wait for Engine running, then rerun. Restart Windows if necessary. No factory reset or data deletion is required by this script.
 - Port already used: free localhost ports 8080/8443, or change the host side of `compose.yaml` ports and the guide together. 8081 is used only during Argo CD port forwarding.
 - Container failure: `docker compose logs --timestamps`; verify Docker memory/disk allocation. Jenkins startup or package network downloads can take longer on slow hardware.
 - Kubernetes/Argo failure: check `minikube status -p devops-laptop` and `kubectl --context=devops-laptop -n argocd get pods`. Reuse the same profile on rerun.
+- Argo CD manifest connection reset: setup now downloads with Windows curl using IPv4, verified TLS and five retries before applying the local file. It waits for Ready nodes and uses `minikube -p devops-laptop kubectl -- ...` to match the cluster version. Downloads are saved in `manifests/`. If retries fail, check VPN/proxy/firewall access to `raw.githubusercontent.com`; do not disable TLS verification. All setup helper output is included in the main transcript.
 - Permission issues: use a local disk accessible to your Windows account and Docker Desktop. Do not use another administrator's identity.
 - Existing `devops-ubuntu` container owned by another project: choose a different container name consistently before proceeding; do not delete unrelated containers.
 - Existing Git/CLI installation found on PATH is reused. No version upgrade is forced. Reruns preserve keys and service data but reapply the current stable Argo CD manifests.
@@ -94,5 +97,3 @@ The requested GitHub integration uses an **Ed25519 SSH key**, not an SSL key. Se
 - https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 
 The files are supplied for execution on your laptop. Static validation does not establish successful downloads, installation, service readiness, or cloud/GitHub authentication; those are checked during execution.
-
-- Docker HTTP 500: readiness requires both a successful exit and a recognized engine type; server-error responses are retried. The script clears a forced `DOCKER_API_VERSION` in its own process to allow API negotiation. If errors persist, use Docker Desktop > Troubleshoot > Restart Docker Desktop, wait for Engine running, then rerun. Restart Windows if necessary. No factory reset or data deletion is required by this script.

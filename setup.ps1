@@ -134,12 +134,7 @@ try {
     }
     Task 'Start Kubernetes and install Argo CD' {
         Run 'minikube' @('start','-p','devops-laptop','--driver=docker','--cpus=2','--memory=4096')
-        Run 'kubectl' @('--context=devops-laptop','get','nodes')
-        $namespace = Probe 'kubectl' @('--context=devops-laptop','get','namespace','argocd','--ignore-not-found','-o','name')
-        if ($namespace.ExitCode -ne 0) { throw "Kubernetes namespace check failed: $($namespace.Output)" }
-        if ([string]::IsNullOrWhiteSpace($namespace.Output)) { Run 'kubectl' @('--context=devops-laptop','create','namespace','argocd') }
-        Run 'kubectl' @('--context=devops-laptop','apply','-n','argocd','--server-side','--force-conflicts','-f','https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml')
-        Run 'kubectl' @('--context=devops-laptop','-n','argocd','rollout','status','deployment/argocd-server','--timeout=300s')
+        & (Join-Path $root 'setup-kubernetes.ps1')
     }
     Task 'Generate GitHub SSH key and local TLS certificate' {
         Run 'docker' @('exec','-u','devops','devops-ubuntu','bash','/usr/local/bin/create-keys')
