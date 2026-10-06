@@ -61,7 +61,7 @@ Setup logs capture installation output; service runtime output remains in Docker
 docker compose stop
 minikube stop -p devops-laptop
 # Rebuild installed tools after reviewing upstream changes
-docker compose build --no-cache --progress plain
+docker compose --progress plain build --no-cache
 docker compose up -d --wait --wait-timeout 300
 ```
 

@@ -2,6 +2,8 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $transcribing = $false
 function Run([string]$exe, [string[]]$arguments) {
+    # Windows PowerShell 5.1 wraps native stderr as ErrorRecords, including normal progress.
+    $ErrorActionPreference = 'Continue'
     & $exe @arguments 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LASTEXITCODE -ne 0) { throw "$exe failed with exit code $LASTEXITCODE" }
 }
@@ -86,12 +88,12 @@ try {
         # User PATH is preserved in full; avoid setx truncation.
         $userPath = [Environment]::GetEnvironmentVariable('Path','User')
         $dockerBin = "$env:ProgramFiles\Docker\Docker\resources\bin"
-        if (($userPath -split ';') -notcontains $dockerBin) { [Environment]::SetEnvironmentVariable('Path',($userPath.TrimEnd(';')+';'+$dockerBin),'User') }
+        if (($userPath -split ';') -notcontains $dockerBin) { [Environment]::SetEnvironmentVariable('Path',(([string]$userPath).TrimEnd(';')+';'+$dockerBin),'User') }
         $saved = @{DataDirectory=$data} | ConvertTo-Json
         Set-Content -LiteralPath (Join-Path $root 'setup-state.json') -Value $saved
     }
     Task 'Build and start Ubuntu DevOps container' {
-        Run 'docker' @('compose','-f',(Join-Path $root 'compose.yaml'),'build','--progress','plain')
+        Run 'docker' @('compose','--progress','plain','-f',(Join-Path $root 'compose.yaml'),'build')
         Run 'docker' @('compose','-f',(Join-Path $root 'compose.yaml'),'up','-d','--wait','--wait-timeout','300')
         Run 'docker' @('exec','devops-ubuntu','bash','/usr/local/bin/verify-tools')
     }
@@ -111,13 +113,15 @@ try {
         Run 'docker' @('cp',(Join-Path $root 'ACCESS.md'),'devops-ubuntu:/home/devops/Desktop/DEVOPS-ACCESS.md')
         Run 'docker' @('exec','chown','devops:devops','/home/devops/Desktop/DEVOPS-ACCESS.md')
         Copy-Item -LiteralPath (Join-Path $root 'ACCESS.md') -Destination (Join-Path $root 'DEVOPS-ACCESS.md') -Force
-        Copy-Item -LiteralPath (Join-Path $root 'log.txt') -Destination (Join-Path $data 'log.txt') -Force
     }
-    Write-Host '`nSUCCESS: See DEVOPS-ACCESS.md for login and GitHub registration steps.' -ForegroundColor Green
+    Write-Host "`nSUCCESS: See DEVOPS-ACCESS.md for login and GitHub registration steps." -ForegroundColor Green
 } catch {
     Write-Host "`n[FAIL] $($_.Exception.Message)" -ForegroundColor Red
     Write-Host 'Fix the reported task and rerun. Existing data and keys are preserved.'
     exit 1
 } finally {
-    if ($transcribing) { Stop-Transcript | Out-Null }
+    if ($transcribing) {
+        Stop-Transcript | Out-Null
+        if ($data -and $data -ne $root) { Copy-Item -LiteralPath (Join-Path $root 'log.txt') -Destination (Join-Path $data 'log.txt') -Force }
+    }
 }
