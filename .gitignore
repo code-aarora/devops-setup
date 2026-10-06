@@ -1,0 +1,7 @@
+data/
+log.txt
+setup-state.json
+DEVOPS-ACCESS.md
+github_devops.pub
+*.key
+*.pem
