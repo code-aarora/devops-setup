@@ -1,8 +1,16 @@
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 .git
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 data
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 log.txt
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 setup-state.json
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 github_devops.pub
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 *.key
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 *.pem
+# Exclude generated local data, credentials, runtime reports or caches from the image build context.
 manifests
