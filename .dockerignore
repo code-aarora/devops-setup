@@ -1,0 +1,7 @@
+.git
+data
+log.txt
+setup-state.json
+github_devops.pub
+*.key
+*.pem
