@@ -79,6 +79,7 @@ try {
     }
     Task 'Verify Docker Linux engine and Compose' {
         $engine = Probe 'docker' @('info','--format','{{.OSType}}')
+        if ($engine.Output -match '(?i)manually paused') { throw 'Docker Desktop is paused. Open its tray menu or Dashboard, resume Docker Desktop, then rerun setup.bat.' }
         if ($engine.ExitCode -ne 0) {
             Write-Host "Docker is not ready: $($engine.Output)"
             $desktop = @("$env:ProgramFiles\Docker\Docker\Docker Desktop.exe", "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe") | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
@@ -88,6 +89,7 @@ try {
             $ready = $false
             for ($i=0; $i -lt 60; $i++) {
                 $engine = Probe 'docker' @('info','--format','{{.OSType}}')
+                if ($engine.Output -match '(?i)manually paused') { throw 'Docker Desktop is paused. Open its tray menu or Dashboard, resume Docker Desktop, then rerun setup.bat.' }
                 if ($engine.ExitCode -eq 0) { $ready=$true; break }
                 if ($i % 6 -eq 0) { Write-Host "Waiting for Docker Linux engine ($($i * 5)/300 seconds)..." }
                 Start-Sleep -Seconds 5
