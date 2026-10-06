@@ -26,6 +26,9 @@ function GetEngineType([string]$output) {
     if ($types.Count -eq 1) { return $types[0] }
     return ''
 }
+function TestEngineReady($engine) {
+    return ($engine.ExitCode -eq 0 -and (GetEngineType $engine.Output) -in @('linux','windows'))
+}
 function RefreshPath {
     $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
     foreach ($p in @("$env:ProgramFiles\Docker\Docker\resources\bin", "$env:ProgramFiles\Git\cmd", "$env:LOCALAPPDATA\Microsoft\WinGet\Links")) {
@@ -78,9 +81,13 @@ try {
         Run 'git' @('--version')
     }
     Task 'Verify Docker Linux engine and Compose' {
+        if ($env:DOCKER_API_VERSION) {
+            Write-Host "Clearing forced Docker API version $env:DOCKER_API_VERSION for this setup process so Docker can negotiate."
+            Remove-Item Env:DOCKER_API_VERSION
+        }
         $engine = Probe 'docker' @('info','--format','{{.OSType}}')
         if ($engine.Output -match '(?i)manually paused') { throw 'Docker Desktop is paused. Open its tray menu or Dashboard, resume Docker Desktop, then rerun setup.bat.' }
-        if ($engine.ExitCode -ne 0) {
+        if (-not (TestEngineReady $engine)) {
             Write-Host "Docker is not ready: $($engine.Output)"
             $desktop = @("$env:ProgramFiles\Docker\Docker\Docker Desktop.exe", "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe") | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
             if (-not $desktop) { throw 'Docker Desktop application not found. Install Docker Desktop; a Docker CLI alone is insufficient.' }
@@ -90,11 +97,17 @@ try {
             for ($i=0; $i -lt 60; $i++) {
                 $engine = Probe 'docker' @('info','--format','{{.OSType}}')
                 if ($engine.Output -match '(?i)manually paused') { throw 'Docker Desktop is paused. Open its tray menu or Dashboard, resume Docker Desktop, then rerun setup.bat.' }
-                if ($engine.ExitCode -eq 0) { $ready=$true; break }
-                if ($i % 6 -eq 0) { Write-Host "Waiting for Docker Linux engine ($($i * 5)/300 seconds)..." }
+                if (TestEngineReady $engine) { $ready=$true; break }
+                if ($i % 6 -eq 0) { Write-Host "Waiting for Docker Linux engine ($($i * 5)/300 seconds)... Last response: $($engine.Output)" }
                 Start-Sleep -Seconds 5
             }
-            if (-not $ready) { throw "Docker engine unavailable after 5 minutes. Last error: $($engine.Output). Open Docker Desktop, check WSL 2/virtualization, and rerun." }
+            if (-not $ready) {
+                foreach ($diagnostic in @(@('version'),@('context','show'))) {
+                    $result = Probe 'docker' $diagnostic
+                    Write-Host "Docker diagnostic: $($result.Output)"
+                }
+                throw "Docker engine unavailable after 5 minutes. Last error: $($engine.Output). Use Docker Desktop > Troubleshoot > Restart Docker Desktop, wait for Engine running, and rerun. If it still returns HTTP 500, restart Windows and check Docker Desktop diagnostics."
+            }
         }
         Write-Host "Docker engine response: $($engine.Output)"
         $os = GetEngineType $engine.Output

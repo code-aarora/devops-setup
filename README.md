@@ -94,3 +94,5 @@ The requested GitHub integration uses an **Ed25519 SSH key**, not an SSL key. Se
 - https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 
 The files are supplied for execution on your laptop. Static validation does not establish successful downloads, installation, service readiness, or cloud/GitHub authentication; those are checked during execution.
+
+- Docker HTTP 500: readiness requires both a successful exit and a recognized engine type; server-error responses are retried. The script clears a forced `DOCKER_API_VERSION` in its own process to allow API negotiation. If errors persist, use Docker Desktop > Troubleshoot > Restart Docker Desktop, wait for Engine running, then rerun. Restart Windows if necessary. No factory reset or data deletion is required by this script.
