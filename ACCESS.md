@@ -47,3 +47,18 @@ GitHub private key: `/home/devops/.ssh/github_devops`; public key: same path plu
 Local TLS files: `/home/devops/.local/share/devops/tls/localhost.key` and `localhost.crt`. These are separate from GitHub SSH authentication and are generated but not automatically applied to services. To use TLS for code-server, change `cert: false` in its config to `cert: /home/devops/.local/share/devops/tls/localhost.crt` and add `cert-key: /home/devops/.local/share/devops/tls/localhost.key`, then restart the container. The editor URL becomes https://localhost:8443. A self-signed certificate requires explicit local trust.
 
 Ubuntu Docker CLI is installed without a daemon/socket. Kubernetes credentials remain on Windows; use Windows kubectl for the local cluster. The Ubuntu CLI can access separately configured remote clusters. Jenkins jobs needing Docker or the local Kubernetes cluster require a deliberately configured agent/credentials.
+
+## Command purposes
+
+The command examples above support the following actions:
+
+- `docker exec`: open a shell, read service login settings, or execute an explicit command in the Ubuntu container.
+- `docker compose`: build the image, start or stop persistent services, and inspect their runtime logs.
+- `minikube start/stop`: start or pause the existing local cluster without deleting its stored data.
+- `kubectl get`: inspect nodes, pods or the named Argo CD login secret; `port-forward` makes its HTTPS service reachable locally.
+- `az login` and `aws configure sso`: authenticate your own cloud account without embedding credentials in these files.
+- `git config`: set the author identity used for future source commits.
+- `ssh`: verify GitHub authentication after registering the public key; `ssh-keygen -p` adds a private-key passphrase.
+- PowerShell environment/JSON commands: reload the chosen storage folder for Compose and decode the initial Argo CD password when requested.
+
+Read password-display command output privately and avoid capturing it in installation logs.
