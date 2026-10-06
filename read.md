@@ -8,7 +8,7 @@ Use [README.md](README.md) for installation and [ACCESS.md](ACCESS.md) for tool 
 
 Repository: `C:\Ashish\repo\DevOPs_setup`. Branch: `codex/devops-setup`. This is an independent nested repository under the existing `C:\Ashish\repo` repository; the parent's history was not changed. Existing Git author identity is reused. No remote was added and no commits were pushed.
 
-These commits were created on **6 October 2026 (Asia/Dubai)** from the conversation history. They are retrospective reconstructions, not commits that existed when the failures occurred. Intermediate commits intentionally show the earlier bugs; the final source files match the working copies before reconstruction. Only changes evidenced in this chat are represented. The requested copy to this folder and task-9 runtime execution are operations, not additional source changes.
+These commits were created on **6 October 2026 (Asia/Dubai)** from the work records. They are retrospective reconstructions, not commits that existed when the failures occurred. Intermediate commits intentionally show the earlier bugs; the final source files match the working copies before reconstruction. Only changes evidenced in the available work records are represented. The requested copy to this folder and task-9 runtime execution are operations, not additional source changes.
 
 ## Architecture
 
@@ -71,12 +71,31 @@ All hashes below identify actual commits in this repository. Use `git show <hash
 | 20 | `35f50d7266a36505fe0e4e7dc81b6646a7175a5f` | fix: wait for Kubernetes and retry Argo CD downloads over IPv4 | `setup.ps1, README.md, .gitignore, .dockerignore` | Integrate the cluster helper, retain downloaded manifests locally, exclude generated manifests from Git/builds and document connection-reset recovery. |
 | 21 | `e9806cec412c4d9b4d8f22b1a7f1ae8d2e91723d` | fix: check individual Argo CD deployments without unsupported all flag | `setup-kubernetes.ps1` | List deployment resource names, validate them and wait on each rollout before checking the application controller. |
 | 22 | `171e262185784b0feabe799dd5dc08b7359880b0` | fix: specify Ubuntu container in access-guide chown command | `setup.ps1` | Pass devops-ubuntu before chown so Docker does not interpret chown as a container name; task 9 was then completed directly and logged. |
+| 23 | `c2a42f7e454c61a8b72ed9b9eb47348c2d556750` | docs: document project architecture and reconstructed commit history | `read.md` | Create the project architecture, source-history table and reconstruction notes. |
+| 24 | `3e834eae06a071eb3cccfd3bfaeaf8fabb0e3971` | docs: explain command purposes in setup.bat | `setup.bat` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 25 | `6a679d5cedcb419f77fe70ae6cba77e41c19111b` | docs: explain command purposes in setup.ps1 | `setup.ps1` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 26 | `45ea88aeebf62da6ca10568bf173900c7b5396b3` | docs: explain command purposes in setup-kubernetes.ps1 | `setup-kubernetes.ps1` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 27 | `606a20eea49c1a3284069b22d748d2d2f393cdd2` | docs: explain command purposes in Dockerfile | `Dockerfile` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 28 | `3a669dfd275dc21775986633789d17d526f02473` | docs: explain command purposes in install-tools.sh | `install-tools.sh` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 29 | `2edbacb7a298d4d843cb15d03a7cc607b3874cd4` | docs: explain command purposes in compose.yaml | `compose.yaml` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 30 | `db3bd6e59345c721e91a02a3a4ee9d7d039061fb` | docs: explain command purposes in entrypoint.sh | `entrypoint.sh` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 31 | `92be6215b71633f46ba23f5db22d89a43bcce262` | docs: explain command purposes in supervisord.conf | `supervisord.conf` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 32 | `661132c00f31b54396cfaea21e0537f310116ad0` | docs: explain command purposes in verify-tools.sh | `verify-tools.sh` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 33 | `af3f56b4c87922f1b0cc372f2b006d32d10363d0` | docs: explain command purposes in create-keys.sh | `create-keys.sh` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 34 | `50d09de26e75a937631d4b725ae6dd65b199818e` | docs: explain command purposes in .gitignore | `.gitignore` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 35 | `1e06831cc03ace5ce0c27be64986acfa1a91ccc7` | docs: explain command purposes in .dockerignore | `.dockerignore` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 36 | `b7f8a8e68221390076fd0670c2e2e0718853b4f4` | docs: explain command purposes in ACCESS.md | `ACCESS.md` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
+| 37 | `8555bed8f3a91971dbd3bbcb5fdede01a441dc19` | docs: explain command purposes in README.md | `README.md` | Explain the purpose of commands, configuration directives or documented operational actions; retain existing behavior. |
 
-The final documentation commit creates this `read.md` and records the full source history above. Its purpose is to explain the project architecture, each file creation and every reconstructed fix. Its reference is `HEAD` at delivery, with subject `docs: document project architecture and reconstructed commit history`. Its own hash cannot be embedded in its committed content without changing that hash; retrieve it with `git log -1 --format=%H -- read.md`.
+The final documentation update records the additional per-file purpose-comment commits and removes assistant-name references from the tracked files. Its reference is `HEAD` at delivery, with subject `docs: record annotated files and complete project history`. Its own hash cannot be embedded in its committed content without changing that hash; retrieve it with `git log -1 --format=%H -- read.md`. Every preceding commit is recorded by its full hash above.
+
+Comments use the native format of each file: `rem` in batch, `#` in PowerShell/Bash/Dockerfile/YAML/ignore files, and `;` in Supervisor configuration. Markdown documents explain commands in prose. The history diagram and Git examples below are documentation; `git status` checks local changes, `git log` shows commits, and `git show` inspects a chosen revision.
+
+Generated logs, live data, runtime state, downloaded manifests and keys are preserved and excluded from version control. They are not rewritten to remove references because they are evidence or credentials, rather than project source. The generated access guide is synchronized with the documented source guide separately.
 
 ## Validation and observed results
 
-- PowerShell syntax, Bash syntax and Docker Compose configuration checks passed during the conversation.
+- PowerShell syntax, Bash syntax and Docker Compose configuration checks passed during the recorded setup work.
 - Native failure probes and Docker engine readiness/parsing regression checks passed.
 - Docker was observed running Linux with client/server API 1.51; transient errors and paused state were handled in later fixes.
 - The Argo CD manifest download over IPv4 succeeded. The cluster was created; rollout checks were corrected after the unsupported flag was reported.
