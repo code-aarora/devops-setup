@@ -20,6 +20,12 @@ function Probe([string]$exe, [string[]]$arguments) {
     $code = $LASTEXITCODE
     [pscustomobject]@{ ExitCode = $code; Output = (($output | ForEach-Object { "$_" }) -join "`n") }
 }
+function GetEngineType([string]$output) {
+    # Docker can emit startup warnings alongside the formatted result.
+    $types = @($output -split '\r?\n' | ForEach-Object { $_.Trim() } | Where-Object { $_ -in @('linux','windows') } | Select-Object -Unique)
+    if ($types.Count -eq 1) { return $types[0] }
+    return ''
+}
 function RefreshPath {
     $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
     foreach ($p in @("$env:ProgramFiles\Docker\Docker\resources\bin", "$env:ProgramFiles\Git\cmd", "$env:LOCALAPPDATA\Microsoft\WinGet\Links")) {
@@ -88,8 +94,11 @@ try {
             }
             if (-not $ready) { throw "Docker engine unavailable after 5 minutes. Last error: $($engine.Output). Open Docker Desktop, check WSL 2/virtualization, and rerun." }
         }
-        $os = $engine.Output.Trim()
-        if ($os -ne 'linux') { throw 'Switch Docker Desktop to Linux containers and rerun.' }
+        Write-Host "Docker engine response: $($engine.Output)"
+        $os = GetEngineType $engine.Output
+        if ($os -eq 'windows') { throw 'Docker reports a Windows engine. Switch Docker Desktop to Linux containers and rerun.' }
+        if ($os -ne 'linux') { throw "Docker returned an unexpected engine response: $($engine.Output). Run docker info --format '{{.OSType}}' and check Docker Desktop status." }
+        Write-Host 'Docker Linux engine verified.'
         Run 'docker' @('compose','version')
     }
     Task 'Set environment and persistent directories' {
