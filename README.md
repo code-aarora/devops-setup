@@ -97,3 +97,18 @@ The requested GitHub integration uses an **Ed25519 SSH key**, not an SSL key. Se
 - https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 
 The files are supplied for execution on your laptop. Static validation does not establish successful downloads, installation, service readiness, or cloud/GitHub authentication; those are checked during execution.
+
+## Command purposes
+
+The command examples above support the following actions:
+
+- `docker exec`: open a shell, read service login settings, or execute an explicit command in the Ubuntu container.
+- `docker compose`: build the image, start or stop persistent services, and inspect their runtime logs.
+- `minikube start/stop`: start or pause the existing local cluster without deleting its stored data.
+- `kubectl get`: inspect nodes, pods or the named Argo CD login secret; `port-forward` makes its HTTPS service reachable locally.
+- `az login` and `aws configure sso`: authenticate your own cloud account without embedding credentials in these files.
+- `git config`: set the author identity used for future source commits.
+- `ssh`: verify GitHub authentication after registering the public key; `ssh-keygen -p` adds a private-key passphrase.
+- PowerShell environment/JSON commands: reload the chosen storage folder for Compose and decode the initial Argo CD password when requested.
+
+Read password-display command output privately and avoid capturing it in installation logs.
