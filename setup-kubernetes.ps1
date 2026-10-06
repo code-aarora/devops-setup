@@ -26,6 +26,15 @@ if (-not (Test-Path -LiteralPath $partial) -or (Get-Item -LiteralPath $partial).
 Move-Item -LiteralPath $partial -Destination $manifest -Force
 Write-Host "Applying downloaded manifest: $manifest"
 InvokeCluster @('apply','-n','argocd','--server-side','--force-conflicts','-f',$manifest)
-InvokeCluster @('-n','argocd','rollout','status','deployment','--all','--timeout=600s')
+$ErrorActionPreference = 'Continue'
+$deployments = & minikube -p devops-laptop kubectl -- -n argocd get deployments -o name 2>&1
+$listExit = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if ($listExit -ne 0) { throw "Unable to list Argo CD deployments: $($deployments -join ' ')" }
+$deploymentNames = @($deployments | ForEach-Object { "$_".Trim() } | Where-Object { $_ -match '^deployment(?:\.apps)?/[a-z0-9-]+$' })
+if ($deploymentNames.Count -eq 0) { throw 'No Argo CD deployments found after applying the manifest.' }
+foreach ($deployment in $deploymentNames) {
+    InvokeCluster @('-n','argocd','rollout','status',$deployment,'--timeout=600s')
+}
 InvokeCluster @('-n','argocd','rollout','status','statefulset/argocd-application-controller','--timeout=600s')
 Write-Host '[PASS] Argo CD deployments and application controller are ready.'
